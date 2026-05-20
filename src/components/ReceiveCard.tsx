@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Download, AlertCircle } from "lucide-react";
 
 type AccessResult = {
@@ -11,12 +10,20 @@ type AccessResult = {
 };
 
 export default function ReceiveCard() {
-  const searchParams = useSearchParams();
-  const initialCode = searchParams.get("code") || "";
-
-  const [code, setCode] = useState(initialCode);
+  const [code, setCode] = useState("");
   const [result, setResult] = useState<AccessResult | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const qrCode = params.get("code");
+
+  if (qrCode) {
+    setTimeout(() => {
+      setCode(qrCode);
+    }, 0);
+  }
+}, []);
 
   async function handleAccess() {
     if (!code.trim()) return;
@@ -37,20 +44,22 @@ export default function ReceiveCard() {
 
       const data = await res.json();
 
-      if (data.downloadUrl) {
-        window.open(data.downloadUrl, "_blank");
-        setCode("");
-        setResult(null);
-      } else {
-        setResult(data);
-      }
+      setResult(data);
+      setCode("");
     } catch {
       setResult({
-        error: "Something went wrong. Please try again.",
+        error: "Something went wrong",
       });
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
+  }
+
+  function handleDownload() {
+    if (!result?.downloadUrl) return;
+
+    window.open(result.downloadUrl, "_blank");
+    setResult(null);
   }
 
   return (
@@ -63,7 +72,7 @@ export default function ReceiveCard() {
         </h1>
 
         <p className="text-slate-400 mb-8 text-base sm:text-lg">
-          Enter access code to retrieve your file.
+          Enter the access code to securely retrieve your file.
         </p>
       </div>
 
@@ -85,9 +94,22 @@ export default function ReceiveCard() {
           disabled={loading}
           className="w-full sm:w-auto bg-blue-600 px-6 py-4 rounded-xl text-white hover:bg-blue-700 transition disabled:opacity-50"
         >
-          {loading ? "Preparing..." : "Get File"}
+          {loading ? "Checking..." : "Get File"}
         </button>
       </div>
+
+      {result?.downloadUrl && (
+        <div className="mt-8 bg-slate-800 rounded-2xl p-6 text-center">
+          <p className="text-slate-400 mb-3">File Ready</p>
+
+          <button
+            onClick={handleDownload}
+            className="w-full sm:w-auto bg-green-600 px-6 py-3 rounded-xl text-white font-semibold hover:bg-green-700 transition"
+          >
+            Download {result.fileName}
+          </button>
+        </div>
+      )}
 
       {result?.error && (
         <div className="mt-8 bg-red-900/30 border border-red-700 rounded-2xl p-5 text-center">
