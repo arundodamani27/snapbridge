@@ -4,20 +4,6 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
-const ALLOWED_TYPES = [
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.ms-powerpoint",
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "text/plain",
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-];
-
 function sanitizeFileName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_");
 }
@@ -34,9 +20,13 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    // Block only video and audio
+    if (
+      file.type.startsWith("video/") ||
+      file.type.startsWith("audio/")
+    ) {
       return NextResponse.json(
-        { error: "Unsupported file type" },
+        { error: "Video and audio files are not supported" },
         { status: 400 }
       );
     }
@@ -57,7 +47,7 @@ export async function POST(request: Request) {
     const { error: uploadError } = await supabaseAdmin.storage
       .from("temp-files")
       .upload(filePath, fileBuffer, {
-        contentType: file.type,
+        contentType: file.type || "application/octet-stream",
       });
 
     if (uploadError) {
@@ -67,7 +57,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // 10 minute expiry
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     const { error: dbError } = await supabaseAdmin
@@ -76,7 +65,7 @@ export async function POST(request: Request) {
         access_code: accessCode,
         file_name: sanitizedName,
         file_path: filePath,
-        mime_type: file.type,
+        mime_type: file.type || "application/octet-stream",
         file_size: file.size,
         expires_at: expiresAt.toISOString(),
         is_active: true,
