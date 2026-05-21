@@ -6,16 +6,14 @@ type FeatureCardProps = {
   description: string;
 };
 
-export default function FeatureCard({
-  icon,
-  title,
-  description,
-}: FeatureCardProps) {
+export default function FeatureCard({ icon, title, description }: FeatureCardProps) {
   return (
-    <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
-      <div className="mb-4 text-blue-400">{icon}</div>
-      <h3 className="font-semibold text-lg text-white">{title}</h3>
-      <p className="text-slate-400 mt-2">{description}</p>
+    <div className="group bg-[#111118] border border-[#2a2a38] rounded-2xl p-5 hover:border-[#4fffb0]/40 hover:bg-[#111118]/80 transition-all duration-200">
+      <div className="w-10 h-10 rounded-xl bg-[#4fffb0]/10 flex items-center justify-center mb-4 text-[#4fffb0] group-hover:bg-[#4fffb0]/20 transition-colors">
+        {icon}
+      </div>
+      <h3 className="text-white font-semibold text-sm mb-1.5">{title}</h3>
+      <p className="text-[#8884a0] text-xs leading-relaxed">{description}</p>
     </div>
   );
 }

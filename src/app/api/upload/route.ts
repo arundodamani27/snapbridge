@@ -67,8 +67,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 2);
+    // 10 minute expiry
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     const { error: dbError } = await supabaseAdmin
       .from("temporary_files")
@@ -79,6 +79,7 @@ export async function POST(request: Request) {
         mime_type: file.type,
         file_size: file.size,
         expires_at: expiresAt.toISOString(),
+        is_active: true,
       });
 
     if (dbError) {
@@ -91,10 +92,10 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       accessCode,
-      expiresAt,
+      expiresAt: expiresAt.toISOString(),
       fileName: sanitizedName,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Upload failed" },
       { status: 500 }
