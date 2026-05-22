@@ -69,6 +69,7 @@ export async function POST(request: Request) {
         file_size: file.size,
         expires_at: expiresAt.toISOString(),
         is_active: true,
+        is_accessed: false,
       });
 
     if (dbError) {

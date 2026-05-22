@@ -14,19 +14,19 @@ export async function POST(request: Request) {
 
     const { data, error } = await supabaseAdmin
       .from("temporary_files")
-      .select("*")
+      .select("is_accessed, expires_at, file_path, id")
       .eq("access_code", accessCode.toUpperCase())
       .eq("is_active", true)
       .single();
 
     if (error || !data) {
       return NextResponse.json(
-        { error: "Invalid code" },
+        { error: "File not found" },
         { status: 404 }
       );
     }
 
-    // Expiry check
+    // expiry cleanup
     if (data.expires_at && new Date(data.expires_at) < new Date()) {
       await supabaseAdmin.storage
         .from("temp-files")
@@ -37,43 +37,18 @@ export async function POST(request: Request) {
         .delete()
         .eq("id", data.id);
 
-      return NextResponse.json(
-        { error: "File expired. Upload again." },
-        { status: 410 }
-      );
+      return NextResponse.json({
+        expired: true,
+      });
     }
-
-    const { data: signedUrlData, error: signedUrlError } =
-      await supabaseAdmin.storage
-        .from("temp-files")
-        .createSignedUrl(data.file_path, 120, {
-          download: data.file_name,
-        });
-
-    if (signedUrlError) {
-      return NextResponse.json(
-        { error: "Failed to create download link" },
-        { status: 500 }
-      );
-    }
-
-    // Mark accessed
-    await supabaseAdmin
-      .from("temporary_files")
-      .update({
-        is_accessed: true,
-      })
-      .eq("id", data.id);
 
     return NextResponse.json({
-      success: true,
-      fileName: data.file_name,
-      downloadUrl: signedUrlData.signedUrl,
+      isAccessed: data.is_accessed,
     });
 
   } catch {
     return NextResponse.json(
-      { error: "Request failed" },
+      { error: "Status check failed" },
       { status: 500 }
     );
   }
