@@ -354,9 +354,8 @@ A small real-world inconvenience became a full-stack project.
 **Arun**  
 MCA Student | Aspiring Full Stack Developer
 
-LinkedIn: https://linkedin.com/in/YOUR_LINKEDIN
+LinkedIn: https://linkedin.com/in/arundodamani
 
-GitHub: https://github.com/YOUR_USERNAME
 
 ---
 
