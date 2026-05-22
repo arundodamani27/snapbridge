@@ -10,7 +10,7 @@ SnapBridge makes file sharing fast, simple, and secure.
 
 ## Live Demo
 
-🔗 https://your-snapbridge.vercel.app
+🔗 https://snapbridge.vercel.app
 
 ---
 
